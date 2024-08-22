@@ -168,7 +168,9 @@ mod types {
     #[inline]
     pub fn putenv(handle: &mut PamHandle, name_value: &str) -> PamResult<()> {
         if let Ok(name_value) = CString::new(name_value) {
-            match unsafe { ffi::pam_putenv(handle, name_value.as_ptr()) }.into() {
+            use std::convert::TryFrom;
+
+            match i32::try_from(unsafe { ffi::pam_putenv(handle, name_value.as_ptr()) }).unwrap().into() {
                 PamReturnCode::Success => Ok(()),
                 err => Err(err.into()),
             }

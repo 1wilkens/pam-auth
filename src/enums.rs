@@ -103,12 +103,6 @@ pub enum PamReturnCode {
     /// Bad item passed to pam_*_item()
     Bad_Item,
 
-    /// conversation function is event driven and data is not available yet
-    Conv_Again,
-
-    /// please call this function again to complete authentication stack.
-    /// Before calling again as isize, verify that conversation is completed
-    Incomplete,
 }
 
 impl std::fmt::Display for PamReturnCode {
@@ -126,11 +120,6 @@ pub enum PamFlag {
     /// Authentication service should not generate any messages
     Silent,
 
-    /// The authentication service should return AUTH_ERROR
-    /// if the user has a null authentication token
-    /// (used by pam_authenticate{,_secondary}())
-    Disallow_Null_AuthTok,
-
     /// Set user credentials for an authentication service
     /// (used for pam_setcred())
     Establish_Cred,
@@ -146,23 +135,6 @@ pub enum PamFlag {
     /// Extend lifetime of user credentials
     /// (used for pam_setcred())
     Refresh_Cred,
-
-    /// The password service should only update those passwords that have aged.
-    /// If this flag is not passed, the password service should update all passwords.
-    /// (used by pam_chauthtok)
-    Change_Expired_AuthTok,
-
-    /// The password service should update passwords Note: PAM_PRELIM_CHECK
-    /// and PAM_UPDATE_AUTHTOK cannot both be set simultaneously!
-    Update_AuthTok,
-
-    /// The following two flags are for use across the Linux-PAM/module
-    /// interface only. The Application is not permitted to use these
-    /// tokens.
-    ///
-    /// The password service should only perform preliminary checks.  No
-    /// passwords should be updated.
-    Prelim_Check,
 }
 
 impl std::fmt::Display for PamFlag {
@@ -204,18 +176,6 @@ pub enum PamItemType {
 
     /// the prompt for getting a username Linux-PAM extensions
     User_Prompt,
-
-    /// app supplied function to override failure delays
-    Fail_Delay,
-
-    /// X display name
-    XDisplay,
-
-    /// X server authentication data
-    XAuthData,
-
-    /// The type for pam_get_authtok
-    AuthTok_Type,
 }
 
 impl std::fmt::Display for PamItemType {

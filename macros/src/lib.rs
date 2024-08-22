@@ -92,7 +92,7 @@ fn build_impl_block(
             } else {
                 // otherwise, fallback to pam_sys
                 // FIXME: This guard should not be necessary
-                parse_quote!(x if x == pam_sys::#id => #enum_name::#v_id,)
+                parse_quote!(x if x == pam_sys::#id.try_into().unwrap() => #enum_name::#v_id,)
             }
         })
         .collect();
@@ -100,6 +100,8 @@ fn build_impl_block(
     parse_quote! {
         impl std::convert::From<i32> for #enum_name {
             fn from(value: i32) -> Self {
+                use ::std::convert::TryInto;
+
                 match value {
                     #(#arms)*
                     _ => #enum_name::#default
