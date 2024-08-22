@@ -68,10 +68,12 @@ fn drop_env_list(ptr: *const *const c_char) {
 #[cfg(not(target_os = "linux"))]
 fn drop_env_list(ptr: *const *const c_char) {
     // FIXME: verify this
-    let mut cur = *ptr;
-    while !ptr.is_null() {
-        unsafe { free(ptr) };
-        ptr = ptr.add(1);
+    unsafe {
+        let mut cur = *ptr;
+        while !cur.is_null() {
+            libc::free(cur as *mut libc::c_void);
+            cur = cur.add(1);
+        }
+        libc::free(ptr as *mut libc::c_void);
     }
-    unsafe { free(ptr) };
 }
