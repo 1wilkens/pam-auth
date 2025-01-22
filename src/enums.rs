@@ -231,6 +231,7 @@ pub enum PamMessageStyle {
     Prompt_Echo_Off,
     Error_Msg,
     Text_Info,
+    Binary_Prompt,
 }
 
 impl std::fmt::Display for PamMessageStyle {
