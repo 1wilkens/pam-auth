@@ -1,4 +1,4 @@
-use libc::{c_int, c_void, calloc, free, size_t, strdup};
+use libc::{c_int, c_void, calloc, free, size_t, strdup, memcpy};
 
 use std::ffi::{CStr, CString};
 use std::mem;
@@ -30,6 +30,8 @@ pub trait Conversation {
     fn info(&mut self, msg: &CStr);
     /// This is an error message from PAM
     fn error(&mut self, msg: &CStr);
+    // This is the binary prompt from Linux-PAM
+    fn prompt_binary(&mut self, msg: &CStr) -> Result<*mut i8, ()>;
 }
 
 /// A minimalistic conversation handler, that uses given login and password
@@ -67,6 +69,11 @@ impl Conversation for PasswordConv {
     fn info(&mut self, _msg: &CStr) {}
     fn error(&mut self, msg: &CStr) {
         eprintln!("[PAM ERROR] {}", msg.to_string_lossy());
+    }
+    fn prompt_binary(&mut self, msg: &CStr) -> Result<*mut i8, ()> {
+        // Print the binary message and echo it back
+        println!("Binary message: {:?}", msg);
+        Ok(msg.as_ptr() as *mut i8) 
     }
 }
 
@@ -123,6 +130,20 @@ pub(crate) unsafe extern "C" fn converse<C: Conversation>(
             PamMessageStyle::Error_Msg => {
                 handler.error(msg);
                 result = PamReturnCode::Conv_Err;
+            }
+            PamMessageStyle::Binary_Prompt => {
+                if let Ok(handler_response) = handler.prompt_binary(msg) {
+                    let size = 88; // This is a hardcoded value for the size of the binary msg
+                    r.resp = calloc(size, std::mem::size_of::<*mut u8>()) as *mut i8;
+                    if resp.is_null() {
+                        return PamReturnCode::Buf_Err as c_int;
+                    }
+                    let dst_ptr: *mut c_void = r.resp as *mut c_void;
+                    let src_ptr: *mut c_void = handler_response as *mut c_void;
+                    memcpy(dst_ptr, src_ptr, size);
+                } else {
+                    result = PamReturnCode::Conv_Err;
+                }
             }
         }
         if result != PamReturnCode::Success {
